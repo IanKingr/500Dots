@@ -94,7 +94,7 @@
 
 
 	// module
-	exports.push([module.id, "body {\n    background: lightgray;\n}\n", ""]);
+	exports.push([module.id, "body {\n    background: lightgray;\n}\n\n.main {\n  display: flex;\n  flex-direction: row;\n}\n\n.info {\n  margin: 10px;\n  font-family: 'Roboto', sans-serif;\n  font-weight: 300;\n}\n\nh2 {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n}\n\nli {\n  margin: 5px;\n}\n\nul {\n    /*-webkit-padding-start: 1px;*/\n}\n\nh1 {\n  font-family: 'Oleo Script', cursive;\n}\n", ""]);
 
 	// exports
 
@@ -412,19 +412,20 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Ship = __webpack_require__(6);
-	var Missile = __webpack_require__(10);
+	var Dot = __webpack_require__(11);
 
 	var Game = function(){
 	  var self = this;
 	  this.objects = [];
-	  this.missiles = [];
+	  this.dots = [];
 	  this.ships = [];
 
-	  // this.addMissile();
+	  this.addDot();
+	  this.addDot();
 	};
 
-	Game.DIM_X = 800;
-	Game.DIM_Y = 1200;
+	Game.DIM_X = 1000;
+	Game.DIM_Y = 600;
 
 	Game.prototype.remove = function(object){
 	  var idx = this.store.indexOf(object);
@@ -435,22 +436,22 @@
 	Game.prototype.addObject = function(object){
 	  if(object.type === "Ship"){
 	    this.ships.push(object);
-	  } else if(object.type === "Missile"){
-	    this.missiles.push(object);
+	  } else if(object.type === "Dot"){
+	    console.log("Dot Added");
+	    this.dots.push(object);
 	  }
 	  // this.objects.push(object);
 	};
 
-	Game.prototype.addMissile = function() {
-	  var missile = new Missile({
+	Game.prototype.addDot = function() {
+	  var dot = new Dot({
 	    pos: this.randomPosition(),
 	    game: this,
 	    velocity: [0, 0]
 	  });
 
-	  this.addObject(missile);
-
-	  return missile;
+	  this.addObject(dot);
+	  return dot;
 	};
 
 
@@ -476,7 +477,7 @@
 	  var self = this;
 	  this.allObjects().forEach(function(object){
 	    // console.log("moving Objects");
-	    if(object.type === "Missile"){
+	    if(object.type === "Dot"){
 	      // debugger;
 	      // console.log("Correcting Path");
 	      object.correctPath(self.ships[0].pos);
@@ -494,29 +495,33 @@
 	};
 
 	Game.prototype.allObjects = function(){
-	  return this.ships.concat(this.missiles);
+	  return this.ships.concat(this.dots);
 	};
 
-	// Game.prototype.checkCollisions = function () {
-	//   var game = this;
-	//
-	//   this.allObjects().forEach(function (obj1) {
-	//     game.allObjects().forEach(function (obj2) {
-	//       if (obj1 == obj2) {
-	//         // don't allow self-collision
-	//         return;
-	//       }
-	//
-	//       if (obj1.isCollidedWith(obj2)) {
-	//         obj1.collideWith(obj2);
-	//       }
-	//     });
-	//   });
-	// };
+	Game.prototype.checkCollisions = function () {
+	  var game = this;
+
+	  this.allObjects().forEach(function (obj1) {
+	    game.allObjects().forEach(function (obj2) {
+	      if (obj1 == obj2) {
+	        // don't allow self-collision
+	        return;
+	      }
+
+	      if (obj1.type === "Dot" && obj2.type === "Dot"){
+	        return;
+	      }
+
+	      if (obj1.isCollidedWith(obj2)) {
+	        obj1.collideWith(obj2);
+	      }
+	    });
+	  });
+	};
 
 	Game.prototype.step = function(delta){
 	  this.moveObjects(delta);
-	  // this.checkCollisions();
+	  this.checkCollisions();
 	};
 
 	Game.prototype.draw = function(context){
@@ -526,6 +531,10 @@
 	  this.allObjects().forEach(function(object){
 	    object.draw(context);
 	  });
+
+	  context.font = '20px Audiowide';
+	  context.fillStyle = "#FFFFFF";
+	  context.fillText("Number of Dots: " + this.dots.length, 10, 20);
 	};
 
 	Game.prototype.isOutofBounds = function(pos){
@@ -535,6 +544,8 @@
 	          pos[1] < 0
 	         );
 	};
+
+	window.Game = Game;
 
 	module.exports = Game;
 
@@ -548,18 +559,25 @@
 	var Util = __webpack_require__(8);
 
 	var Ship = function(options){
-	  options.length = Ship.length;
-	  options.height = Ship.height;
+	  // options.length = Ship.length;
+	  // options.height = Ship.height;
+	  options.radius = Ship.radius;
 	  options.velocity = options.velocity || [0, 0];
-	  options.color = "yellow";
+	  options.color = "white";
 
 	  MovingObject.call(this, options);
 	};
 
 	Ship.length = 10;
 	Ship.height = 20;
+	Ship.radius = 5;
 
 	Util.inherits(Ship, MovingObject);
+
+	Ship.prototype.brake = function(){
+	  this.velocity[0] *= 0.8;
+	  this.velocity[1] *= 0.8; 
+	};
 
 	Ship.prototype.boost = function(movementDelta){
 	  var x_vel = this.velocity[0];
@@ -574,12 +592,15 @@
 	  }
 
 	  var boostFactor = [1, 1];
-	  if(this.velocity[0] < 7){
-	    boostFactor = [3, 1];
-	    console.log("Boosting x! " + this.velocity[0]);
-	  } else if(this.velocity[1] < 7){
-	    boostFactor = [1, 3];
-	    console.log("Boosting y! " + this.velocity[1]);
+	  // debugger;
+	  if(Math.abs(this.velocity[0]) < 20){
+	    boostFactor = [10, 1];
+	    // console.log("Boosting x! " + this.velocity[0]);
+	  }
+
+	  if(Math.abs(this.velocity[1]) < 20){
+	    boostFactor = [1, 10];
+	    // console.log("Boosting y! " + this.velocity[1]);
 	  }
 
 	  this.velocity = this.velocity.map(function(velocity, idx){
@@ -605,8 +626,9 @@
 	var MovingObject = function(options){
 	  this.pos = options.pos;
 	  this.velocity = options.velocity;
-	  this.height = options.height;
-	  this.length = options.length;
+	  this.radius = options.radius;
+	  // this.height = options.height;
+	  // this.length = options.length;
 	  this.color = options.color;
 	  this.game = options.game;
 	};
@@ -626,15 +648,14 @@
 	  }
 	};
 
-	MovingObject.prototype.draw = function(context){
-	  context.fillStyle = "white";
-	  // var x_pos = this.pos[0];
-	  // var y_pos = this.pos[1];
-	  // var length = context.length;
-	  // var height = context.height;
-	  //
-	  // context.fillRect(x_pos,y_pos,length, height);
+	MovingObject.prototype.speed = function(){
+	  var xComponent = Math.pow(this.velocity[0],2);
+	  var yComponent = Math.pow(this.velocity[1],2);
+	  return Math.pow(xComponent + yComponent, 1/2);
+	};
 
+	MovingObject.prototype.draw = function(context){
+	  context.fillStyle = this.color;
 	  context.beginPath();
 	  context.arc(
 	    this.pos[0], this.pos[1], 15, 15, 2 * Math.PI, true
@@ -643,13 +664,21 @@
 	};
 
 	MovingObject.prototype.isCollidedWith = function(otherObject){
-	  if ((otherObject.y_pos < this.pos[1] + (this.height/2.0)) &&
-	      (otherObject.y_pos > this.pos[1] - (this.height/2.0))) {
-	        return ((otherObject.x_pos > this.pos[0] + this.length/2.0) &&
-	                (otherObject.x_pos < this.pos[0] - this.length/2.0));
-	  }
-	  return false;
+	  var centerDist = Util.distance(this.pos, otherObject.pos);
+	  return centerDist < 1.4*(this.radius + otherObject.radius); //1.4 fudge factor
 	};
+
+	MovingObject.prototype.collideWith = function(otherObject){
+	  if(this.type==="Ship"){
+	    otherObject.color = MovingObject.colors[Math.floor(Math.random()*MovingObject.colors.length)];
+	  }
+	};
+
+	MovingObject.colors = ["AliceBlue","Aqua","Aquamarine","Azure","Beige","Bisque","Black","BlanchedAlmond","Blue","BlueViolet","BurlyWood","CadetBlue","Chartreuse","Chocolate","Coral","CornflowerBlue","Cornsilk","Crimson","Cyan","DarkBlue","DarkCyan","DarkGoldenRod","DarkGray","DarkGrey","DarkGreen","DarkMagenta","DarkOliveGreen","Darkorange","DarkOrchid","DarkRed","DarkSalmon","DarkSeaGreen","DarkSlateBlue","DarkSlateGray","DarkSlateGrey","DarkTurquoise","DarkViolet","DeepPink","DeepSkyBlue","DodgerBlue","FireBrick","ForestGreen","Fuchsia"];
+
+	// ,"Gainsboro","GhostWhite","Gold","GoldenRod","Gray","Grey","Green","GreenYellow","HoneyDew","HotPink","IndianRed","Indigo","Ivory","Khaki","Lavender","LavenderBlush","LawnGreen","LemonChiffon","LightBlue","LightCoral","LightCyan","LightGoldenRodYellow","LightGray","LightGrey","LightGreen","LightPink","LightSalmon","LightSeaGreen","LightSkyBlue","LightSlateGray","LightSlateGrey","LightSteelBlue","LightYellow","Lime","LimeGreen","Linen","Magenta","Maroon","MediumAquaMarine","MediumBlue","MediumOrchid","MediumPurple","MediumSeaGreen","MediumSlateBlue","MediumSpringGreen","MediumTurquoise","MediumVioletRed","MidnightBlue","MintCream","MistyRose","Moccasin","NavajoWhite","Navy","OldLace","Olive","OliveDrab","Orange","OrangeRed","Orchid","PaleGoldenRod","PaleGreen","PaleTurquoise","PaleVioletRed","PapayaWhip","PeachPuff","Peru","Pink","Plum","PowderBlue","Purple","Red","RosyBrown","RoyalBlue","SaddleBrown","Salmon","SandyBrown","SeaGreen","SeaShell","Sienna","Silver","SkyBlue","SlateBlue","SlateGray","SlateGrey","Snow","SpringGreen","SteelBlue","Tan","Teal","Thistle","Tomato","Turquoise","Violet","Wheat","White","WhiteSmoke","Yellow","YellowGreen"];
+
+	window.MovingObject = MovingObject;
 
 	module.exports = MovingObject;
 
@@ -658,17 +687,22 @@
 /* 8 */
 /***/ function(module, exports) {
 
-	var Util = function(){
+	var Util = {
 
+	  distance: function(obj1Pos, obj2Pos){
+	    return Math.pow(Math.pow(obj1Pos[0] - obj2Pos[0],2) + Math.pow(obj1Pos[1] - obj2Pos[1],2), 1/2);
+	  },
+
+	  inherits: function(childClass, parentClass){
+	    var Surrogate = function(){};
+	    Surrogate.prototype = parentClass.prototype;
+	    childClass.prototype = new Surrogate();
+	    childClass.prototype.constructor = childClass;
+	  }
 	};
 
 
-	Util.inherits = function(childClass, parentClass){
-	  var Surrogate = function(){};
-	  Surrogate.prototype = parentClass.prototype;
-	  childClass.prototype = new Surrogate();
-	  childClass.prototype.constructor = childClass;
-	};
+
 
 	module.exports = Util;
 
@@ -684,7 +718,7 @@
 	  this.game = game;
 	  this.context = context;
 	  this.ship = this.game.addShip();
-	  this.game.addMissile();
+	  // this.game.addDot();
 	};
 
 	GameView.prototype.start = function () {
@@ -708,41 +742,52 @@
 
 	GameView.prototype.bindKeyHandlers = function(){
 	  var ship = this.ship;
+	  var self = this;
 
 	  key('w', function(){ ship.boost([0, -1.5]); });
 	  key('a', function(){ ship.boost([-1, 0]); });
 	  key('s', function(){ ship.boost([0, 1.5]); });
 	  key('d', function(){ ship.boost([1, 0]); });
+	  key('up', function(){ ship.boost([0, -1.5]); });
+	  key('left', function(){ ship.boost([-1, 0]); });
+	  key('down', function(){ ship.boost([0, 1.5]); });
+	  key('right', function(){ ship.boost([1, 0]); });
+	  key('q', function(){ self.game.addDot(); });
+	  key('space', function(){ ship.brake(); });
 	};
 
 	module.exports = GameView;
 
 
 /***/ },
-/* 10 */
+/* 10 */,
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var MovingObject = __webpack_require__(7);
 	var Util = __webpack_require__(8);
 
-	var Missile = function(options){
-	  options.length = Missile.length;
-	  options.height = Missile.height;
+	var Dot = function(options){
+	  // options.length = Dot.length;
+	  // options.height = Dot.height;
+	  options.radius = Dot.radius;
 	  options.velocity = options.velocity || [Math.random()*10, Math.random()*10];
-	  options.color = "yellow";
+	  options.color = "red";
 
 	  MovingObject.call(this, options);
 	};
 
-	Util.inherits(Missile, MovingObject);
+	Util.inherits(Dot, MovingObject);
 
-	Missile.prototype.correctPath = function(shipPos){
+	Dot.prototype.correctPath = function(shipPos){
 	  var correctionFactor = 1;
 	  var x_vel = this.velocity[0];
 	  var y_vel = this.velocity[1];
 	  // if(this.speed() < 50){ correctionFactor = 1;}
 	  // 30 seems like a good max speed
-	  // add missiles when count hits certain points (# destroyed, time elapsed, score count)
+	  // add dots when count hits certain points (# destroyed, time elapsed, score count)
+	  // set a speed cap on dots
+
 
 	  if(shipPos[0] < this.pos[0]){
 	    //If it overshoots ship, it brakes and starts moving in the other direction
@@ -764,18 +809,14 @@
 
 	};
 
-	Missile.prototype.brake = function(velocity){
-	  var brakeFactor = 0.95;
+	Dot.prototype.brake = function(velocity){
+	  var brakeFactor = 0.97;
 	  return velocity * brakeFactor;
 	};
 
-	Missile.prototype.speed = function(){
-	  var xComponent = Math.pow(this.velocity[0],2);
-	  var yComponent = Math.pow(this.velocity[1],2);
-	  return Math.pow(xComponent + yComponent, 1/2);
-	};
 
-	// Missile.prototype.boost = function(movementDelta){
+
+	// Dot.prototype.boost = function(movementDelta){
 	//   var x_vel = this.velocity[0];
 	//   var y_vel = this.velocity[1];
 	//
@@ -800,11 +841,12 @@
 	//   });
 	// };
 
-	Missile.length = 4;
-	Missile.height = 4;
-	Missile.prototype.type = "Missile";
+	Dot.length = 4;
+	Dot.height = 4;
+	Dot.radius = 3;
+	Dot.prototype.type = "Dot";
 
-	module.exports = Missile;
+	module.exports = Dot;
 
 
 /***/ }

@@ -1,3 +1,31 @@
 body {
     background: lightgray;
 }
+
+.main {
+  display: flex;
+  flex-direction: row;
+}
+
+.info {
+  margin: 10px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+}
+
+h2 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+}
+
+li {
+  margin: 5px;
+}
+
+ul {
+    /*-webkit-padding-start: 1px;*/
+}
+
+h1 {
+  font-family: 'Oleo Script', cursive;
+}
