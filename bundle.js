@@ -45,7 +45,18 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(1);
-	document.write(__webpack_require__(5));
+	var Game = __webpack_require__(5);
+	var GameView = __webpack_require__(9);
+
+	document.addEventListener("DOMContentLoaded", function(){
+	  var canvasEl = document.getElementsByTagName("canvas")[0];
+	  canvasEl.width = Game.DIM_X;
+	  canvasEl.height = Game.DIM_Y;
+
+	  var context = canvasEl.getContext("2d");
+	  var game = new Game();
+	  new GameView(game, context).start();
+	});
 
 
 /***/ },
@@ -83,7 +94,7 @@
 
 
 	// module
-	exports.push([module.id, "body {\n    background: yellow;\n}\n", ""]);
+	exports.push([module.id, "body {\n    background: lightgray;\n}\n", ""]);
 
 	// exports
 
@@ -398,9 +409,402 @@
 
 /***/ },
 /* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Ship = __webpack_require__(6);
+	var Missile = __webpack_require__(10);
+
+	var Game = function(){
+	  var self = this;
+	  this.objects = [];
+	  this.missiles = [];
+	  this.ships = [];
+
+	  // this.addMissile();
+	};
+
+	Game.DIM_X = 800;
+	Game.DIM_Y = 1200;
+
+	Game.prototype.remove = function(object){
+	  var idx = this.store.indexOf(object);
+	  this.store.splice(idx,1);
+	};
+
+
+	Game.prototype.addObject = function(object){
+	  if(object.type === "Ship"){
+	    this.ships.push(object);
+	  } else if(object.type === "Missile"){
+	    this.missiles.push(object);
+	  }
+	  // this.objects.push(object);
+	};
+
+	Game.prototype.addMissile = function() {
+	  var missile = new Missile({
+	    pos: this.randomPosition(),
+	    game: this,
+	    velocity: [0, 0]
+	  });
+
+	  this.addObject(missile);
+
+	  return missile;
+	};
+
+
+	Game.prototype.addShip = function() {
+	  var ship = new Ship({
+	    pos: this.randomPosition(),
+	    game: this,
+	    velocity: [0, 0]
+	  });
+
+	  this.addObject(ship);
+
+	  return ship;
+	};
+
+	Game.prototype.randomPosition = function(){
+	  var x = Math.round(Math.random()*Game.DIM_X);
+	  var y = Math.round(Math.random()*Game.DIM_Y);
+	  return [x , y];
+	};
+
+	Game.prototype.moveObjects = function(delta){
+	  var self = this;
+	  this.allObjects().forEach(function(object){
+	    // console.log("moving Objects");
+	    if(object.type === "Missile"){
+	      // debugger;
+	      // console.log("Correcting Path");
+	      object.correctPath(self.ships[0].pos);
+	    }
+	    object.move(delta);
+	  });
+	};
+
+	Game.prototype.wrap = function(pos){
+	  var x; var y;
+	  pos[0] >= Game.DIM_X || pos[0] <= 0 ? x = Math.abs(Game.DIM_X - Math.abs(pos[0])) : x = pos[0];
+	  pos[1] >= Game.DIM_Y || pos[1] <= 0 ? y = Math.abs(Game.DIM_Y - Math.abs(pos[1])) : y = pos[1];
+
+	  return [x, y];
+	};
+
+	Game.prototype.allObjects = function(){
+	  return this.ships.concat(this.missiles);
+	};
+
+	// Game.prototype.checkCollisions = function () {
+	//   var game = this;
+	//
+	//   this.allObjects().forEach(function (obj1) {
+	//     game.allObjects().forEach(function (obj2) {
+	//       if (obj1 == obj2) {
+	//         // don't allow self-collision
+	//         return;
+	//       }
+	//
+	//       if (obj1.isCollidedWith(obj2)) {
+	//         obj1.collideWith(obj2);
+	//       }
+	//     });
+	//   });
+	// };
+
+	Game.prototype.step = function(delta){
+	  this.moveObjects(delta);
+	  // this.checkCollisions();
+	};
+
+	Game.prototype.draw = function(context){
+	  context.clearRect(0, 0, Game.DIM_X, Game.DIM_Y);
+	  context.fillStyle = "#000000";
+	  context.fillRect(0, 0, Game.DIM_X, Game.DIM_Y);
+	  this.allObjects().forEach(function(object){
+	    object.draw(context);
+	  });
+	};
+
+	Game.prototype.isOutofBounds = function(pos){
+	  return (pos[0] > Game.DIM_X ||
+	          pos[0] < 0 ||
+	          pos[1]> Game.DIM_Y ||
+	          pos[1] < 0
+	         );
+	};
+
+	module.exports = Game;
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Ship = __webpack_require__(6);
+	var MovingObject = __webpack_require__(7);
+	var Util = __webpack_require__(8);
+
+	var Ship = function(options){
+	  options.length = Ship.length;
+	  options.height = Ship.height;
+	  options.velocity = options.velocity || [0, 0];
+	  options.color = "yellow";
+
+	  MovingObject.call(this, options);
+	};
+
+	Ship.length = 10;
+	Ship.height = 20;
+
+	Util.inherits(Ship, MovingObject);
+
+	Ship.prototype.boost = function(movementDelta){
+	  var x_vel = this.velocity[0];
+	  var y_vel = this.velocity[1];
+	  var brakeFactor = 0.8;
+
+	  // Improves handling of ship for fast direction changes
+	  if ((x_vel < 0 && movementDelta[0] > 0) || (x_vel > 0 && movementDelta[0] < 0)){
+	    this.resetVelocity([-brakeFactor*x_vel, y_vel]);
+	  } else if ((y_vel < 0 && movementDelta[1] > 0) || (y_vel > 0 && movementDelta[1] < 0)) {
+	    this.resetVelocity([x_vel, -brakeFactor*y_vel]);
+	  }
+
+	  var boostFactor = [1, 1];
+	  if(this.velocity[0] < 7){
+	    boostFactor = [3, 1];
+	    console.log("Boosting x! " + this.velocity[0]);
+	  } else if(this.velocity[1] < 7){
+	    boostFactor = [1, 3];
+	    console.log("Boosting y! " + this.velocity[1]);
+	  }
+
+	  this.velocity = this.velocity.map(function(velocity, idx){
+	    return velocity + movementDelta[idx] * boostFactor[idx];
+	  });
+	};
+
+	Ship.prototype.resetVelocity = function(newVelocity){
+	  this.velocity = newVelocity;
+	};
+
+	Ship.prototype.type = "Ship";
+
+	module.exports = Ship;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Util = __webpack_require__(8);
+
+	var MovingObject = function(options){
+	  this.pos = options.pos;
+	  this.velocity = options.velocity;
+	  this.height = options.height;
+	  this.length = options.length;
+	  this.color = options.color;
+	  this.game = options.game;
+	};
+
+	var FRAME_TIME = 1000/60;
+	MovingObject.prototype.move = function(timeDelta){
+	  var self = this;
+	  var velocityScale = (timeDelta/FRAME_TIME)/5;
+
+	  this.pos = this.pos.map(function(pos,idx){
+	    return pos + self.velocity[idx] * velocityScale;
+	  });
+
+	  if(this.game.isOutofBounds(this.pos)) {
+	    this.pos = this.game.wrap(this.pos);
+	    // this.game.remove(this);
+	  }
+	};
+
+	MovingObject.prototype.draw = function(context){
+	  context.fillStyle = "white";
+	  // var x_pos = this.pos[0];
+	  // var y_pos = this.pos[1];
+	  // var length = context.length;
+	  // var height = context.height;
+	  //
+	  // context.fillRect(x_pos,y_pos,length, height);
+
+	  context.beginPath();
+	  context.arc(
+	    this.pos[0], this.pos[1], 15, 15, 2 * Math.PI, true
+	  );
+	  context.fill();
+	};
+
+	MovingObject.prototype.isCollidedWith = function(otherObject){
+	  if ((otherObject.y_pos < this.pos[1] + (this.height/2.0)) &&
+	      (otherObject.y_pos > this.pos[1] - (this.height/2.0))) {
+	        return ((otherObject.x_pos > this.pos[0] + this.length/2.0) &&
+	                (otherObject.x_pos < this.pos[0] - this.length/2.0));
+	  }
+	  return false;
+	};
+
+	module.exports = MovingObject;
+
+
+/***/ },
+/* 8 */
 /***/ function(module, exports) {
 
-	module.exports = "It works from content.js.";
+	var Util = function(){
+
+	};
+
+
+	Util.inherits = function(childClass, parentClass){
+	  var Surrogate = function(){};
+	  Surrogate.prototype = parentClass.prototype;
+	  childClass.prototype = new Surrogate();
+	  childClass.prototype.constructor = childClass;
+	};
+
+	module.exports = Util;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Game = __webpack_require__(5);
+	var Ship = __webpack_require__(6);
+
+	var GameView = function(game, context){
+	  this.game = game;
+	  this.context = context;
+	  this.ship = this.game.addShip();
+	  this.game.addMissile();
+	};
+
+	GameView.prototype.start = function () {
+	  this.bindKeyHandlers();
+	  this.lastTime = 0;
+	  //start the animation
+	  requestAnimationFrame(this.animate.bind(this));
+	};
+
+	GameView.prototype.animate = function(time){
+	  var timeDelta = time - this.lastTime;
+
+	  this.game.step(timeDelta);
+	  this.game.draw(this.context);
+	  this.lastTime = time;
+
+	  //every call to animate requests causes another call to animate
+	  requestAnimationFrame(this.animate.bind(this));
+	};
+
+
+	GameView.prototype.bindKeyHandlers = function(){
+	  var ship = this.ship;
+
+	  key('w', function(){ ship.boost([0, -1.5]); });
+	  key('a', function(){ ship.boost([-1, 0]); });
+	  key('s', function(){ ship.boost([0, 1.5]); });
+	  key('d', function(){ ship.boost([1, 0]); });
+	};
+
+	module.exports = GameView;
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var MovingObject = __webpack_require__(7);
+	var Util = __webpack_require__(8);
+
+	var Missile = function(options){
+	  options.length = Missile.length;
+	  options.height = Missile.height;
+	  options.velocity = options.velocity || [Math.random()*10, Math.random()*10];
+	  options.color = "yellow";
+
+	  MovingObject.call(this, options);
+	};
+
+	Util.inherits(Missile, MovingObject);
+
+	Missile.prototype.correctPath = function(shipPos){
+	  var correctionFactor = 1;
+	  var x_vel = this.velocity[0];
+	  var y_vel = this.velocity[1];
+	  // if(this.speed() < 50){ correctionFactor = 1;}
+	  // 30 seems like a good max speed
+	  // add missiles when count hits certain points (# destroyed, time elapsed, score count)
+
+	  if(shipPos[0] < this.pos[0]){
+	    //If it overshoots ship, it brakes and starts moving in the other direction
+	    if(x_vel > 0){ x_vel = this.brake(x_vel); }
+	    this.velocity[0] = x_vel - correctionFactor;
+	  } else if (shipPos[0] > this.pos[0]){
+	    if(x_vel < 0){ x_vel = this.brake(x_vel); }
+	    this.velocity[0] = x_vel + correctionFactor;
+	  }
+
+	  if(shipPos[1] < this.pos[1]){
+	    if(y_vel > 0){ y_vel = this.brake(y_vel); }
+	    this.velocity[1] = y_vel - correctionFactor;
+	  } else if (shipPos[1] > this.pos[1]){
+	    if(y_vel < 0){ y_vel = this.brake(y_vel); }
+	    this.velocity[1] = y_vel + correctionFactor;
+	  }
+
+
+	};
+
+	Missile.prototype.brake = function(velocity){
+	  var brakeFactor = 0.95;
+	  return velocity * brakeFactor;
+	};
+
+	Missile.prototype.speed = function(){
+	  var xComponent = Math.pow(this.velocity[0],2);
+	  var yComponent = Math.pow(this.velocity[1],2);
+	  return Math.pow(xComponent + yComponent, 1/2);
+	};
+
+	// Missile.prototype.boost = function(movementDelta){
+	//   var x_vel = this.velocity[0];
+	//   var y_vel = this.velocity[1];
+	//
+	//   // Improves handling of ship for fast direction changes
+	//   if ((x_vel < 0 && movementDelta[0] > 0) || (x_vel > 0 && movementDelta[0] < 0)){
+	//     this.resetVelocity([-0.8*x_vel, y_vel]);
+	//   } else if ((y_vel < 0 && movementDelta[1] > 0) || (y_vel > 0 && movementDelta[1] < 0)) {
+	//     this.resetVelocity([x_vel, -0.8*y_vel]);
+	//   }
+	//
+	//   var boostFactor = [1, 1];
+	//   if(this.velocity[0] < 3){
+	//     boostFactor = [1.5, 1];
+	//     console.log("Boosting! " + this.velocity[0]);
+	//   } else if(this.velocity[1] < 3){
+	//     boostFactor = [1, 1.5];
+	//     console.log("Boosting! " + this.velocity[1]);
+	//   }
+	//
+	//   this.velocity = this.velocity.map(function(move, idx){
+	//     return movementDelta[idx] * boostFactor[idx] + move;
+	//   });
+	// };
+
+	Missile.length = 4;
+	Missile.height = 4;
+	Missile.prototype.type = "Missile";
+
+	module.exports = Missile;
 
 
 /***/ }
