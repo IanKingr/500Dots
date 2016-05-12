@@ -94,7 +94,7 @@
 
 
 	// module
-	exports.push([module.id, "body {\n    background: lightgray;\n}\n\nh2 {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n}\n\nli {\n  margin: 5px;\n}\n\n/*ul {\n    -webkit-padding-start: 1px;\n}*/\n\nh1 {font-family: 'Oleo Script', cursive;}\n\nbutton:focus {outline:0;}\n\n.game {\n  position: relative;\n}\n\n.main {\n  display: flex;\n  flex-direction: row;\n}\n\n.info {\n  margin: 10px;\n  font-family: 'Roboto', sans-serif;\n  font-weight: 300;\n}\n\n.pause-button {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  z-index: 10;\n  position: absolute;\n  min-width: 60px;\n  min-height: 30px;\n  top: 5px;\n  right: 10px;\n  background-color: white;\n  border-radius: 2px;\n  border: 0px;\n}\n\n.active {\n  background-color: darkred;\n  color: floralwhite;\n}\n", ""]);
+	exports.push([module.id, "body {\n  background: lightgray;\n}\n\nh2 {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n}\n\nli {\n  margin: 5px;\n}\n\nh1 {font-family: 'Oleo Script', cursive;}\n\nbutton:focus {outline:0;}\n\n.game {\n  position: relative;\n}\n\n.main {\n  display: flex;\n  flex-direction: row;\n}\n\n.info {\n  margin: 10px;\n  font-family: 'Roboto', sans-serif;\n  font-weight: 300;\n}\n\n.pause-button {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  z-index: 10;\n  position: absolute;\n  min-width: 60px;\n  min-height: 30px;\n  top: 5px;\n  right: 10px;\n  background-color: white;\n  border-radius: 2px;\n  border: 0px;\n}\n\n.active {\n  background-color: darkred;\n  color: floralwhite;\n}\n", ""]);
 
 	// exports
 
@@ -419,10 +419,10 @@
 	  this.objects = [];
 	  this.dots = [];
 	  this.ships = [];
-	  var startingDots = 500;
+	  var starting10xDots = 50;
 
-	  for (var i = 0; i < startingDots; i++) {
-	    this.addDot();
+	  for (var i = 0; i < starting10xDots; i++) {
+	    this.add10dots();
 	  }
 	};
 
@@ -444,15 +444,16 @@
 	  }
 	};
 
-	Game.prototype.addDot = function() {
-	  var dot = new Dot({
-	    pos: this.randomPosition(),
-	    game: this,
-	    velocity: [0, 0]
-	  });
+	Game.prototype.add10dots = function() {
+	  for (var i = 0; i < 10; i++) {
+	    var dot = new Dot({
+	      pos: this.randomPosition(),
+	      game: this,
+	      velocity: [0, 0]
+	    });
 
-	  this.addObject(dot);
-	  return dot;
+	    this.addObject(dot);
+	  }
 	};
 
 
@@ -567,8 +568,6 @@
 	var Util = __webpack_require__(8);
 
 	var Ship = function(options){
-	  // options.length = Ship.length;
-	  // options.height = Ship.height;
 	  options.radius = Ship.radius;
 	  options.velocity = options.velocity || [0, 0];
 	  options.color = "white";
@@ -583,8 +582,8 @@
 	Util.inherits(Ship, MovingObject);
 
 	Ship.prototype.brake = function(){
-	  this.velocity[0] *= 0.8;
-	  this.velocity[1] *= 0.8; 
+	  this.velocity[0] *= 0.4;
+	  this.velocity[1] *= 0.4;
 	};
 
 	Ship.prototype.boost = function(movementDelta){
@@ -600,15 +599,12 @@
 	  }
 
 	  var boostFactor = [1, 1];
-	  // debugger;
 	  if(Math.abs(this.velocity[0]) < 20){
 	    boostFactor = [10, 1];
-	    // console.log("Boosting x! " + this.velocity[0]);
 	  }
 
 	  if(Math.abs(this.velocity[1]) < 20){
 	    boostFactor = [1, 10];
-	    // console.log("Boosting y! " + this.velocity[1]);
 	  }
 
 	  this.velocity = this.velocity.map(function(velocity, idx){
@@ -644,6 +640,14 @@
 	  var self = this;
 	  var velocityScale = (timeDelta/FRAME_TIME)/5;
 
+	  //Velocity Cap
+	  var cap = 1000;
+	  if (self.velocity[0] > cap) {self.velocity[0] = cap; }
+	  if (self.velocity[0] < -cap){self.velocity[0] = -cap;}
+	  if (self.velocity[1] > cap) {self.velocity[1] = cap; }
+	  if (self.velocity[1] < -cap){self.velocity[1] = -cap;}
+	  //
+
 	  this.pos = this.pos.map(function(pos,idx){
 	    return pos + self.velocity[idx] * velocityScale;
 	  });
@@ -654,17 +658,34 @@
 	};
 
 	MovingObject.prototype.explosion = function(ship){
-	  // if(Util.distance(this, ship.pos) > this.radius * 4){
-	  //   return;
-	  // }
 	  var xDistance = this.pos[0] - ship.pos[0];
 	  var yDistance = this.pos[1] - ship.pos[1];
+	  var normalDistance = Math.pow(Math.pow(xDistance, 2) + Math.pow(yDistance, 2),1/2);
 
-	  xDistance = xDistance < 0.5 ? 0.5 : xDistance;
-	  yDistance = yDistance < 0.5 ? 0.5 : yDistance;
+	  // If using other equations, might want to write these rewrite constraints to constrain the explosionVector multiplier
+	  xDistance = xDistance < 0.5 && xDistance > 0 ? 0.5 : xDistance;
+	  xDistance = xDistance > -0.5 && xDistance < 0 ? -0.5 : xDistance;
+	  yDistance = yDistance < 0.5 && yDistance > 0 ? 0.5 : yDistance;
+	  yDistance = yDistance > -0.5 && yDistance < 0 ? -0.5 : yDistance;
 
-	  var explosiveForce = 20;
-	  var explosionVector = [explosiveForce / Math.pow(xDistance, 2), explosiveForce / Math.pow(yDistance, 2)];
+	  var explosiveForce = 10;
+
+	  var explosionVectors = {
+	    //Small Star + cross on repeats
+	    0: [xDistance * Math.pow(explosiveForce/normalDistance, 1),
+	          yDistance * Math.pow(explosiveForce/normalDistance, 1)],
+
+	    //Atom
+	    1: [xDistance * Math.pow(explosiveForce/normalDistance, 2),
+	      yDistance * Math.pow(explosiveForce/normalDistance, 2)],
+
+	    //Square
+	    2: [explosiveForce / Math.pow(xDistance, 3),
+	      explosiveForce / Math.pow(yDistance, 3)]
+	  };
+
+	  // var randVector = Math.floor(Math.random() * Object.keys(explosionVectors).length);
+	  var explosionVector = explosionVectors[2];
 	  this.velocity = Util.sumArrays(explosionVector, this.velocity);
 	};
 
@@ -685,12 +706,12 @@
 
 	MovingObject.prototype.isCollidedWith = function(otherObject){
 	  var centerDist = Util.distance(this.pos, otherObject.pos);
-	  return centerDist < 1.4*(this.radius + otherObject.radius); //1.4 fudge factor
+	  return centerDist < 1.4*(this.radius + otherObject.radius); 
 	};
 
 	MovingObject.prototype.collideWith = function(otherObject){
 	  if(this.type==="Ship"){
-	    otherObject.color = MovingObject.colors[Math.floor(Math.random()*MovingObject.colors.length)];
+	    otherObject.color = MovingObject.colors[ Math.floor(Math.random() * MovingObject.colors.length)];
 	  }
 	};
 
@@ -706,7 +727,6 @@
 /***/ function(module, exports) {
 
 	var Util = {
-
 	  distance: function(obj1Pos, obj2Pos){
 	    return Math.pow(Math.pow(obj1Pos[0] - obj2Pos[0],2) + Math.pow(obj1Pos[1] - obj2Pos[1],2), 1/2);
 	  },
@@ -776,7 +796,7 @@
 	  this.game.draw(this.context);
 	  this.lastTime = time;
 
-	  //every call to animate requests causes another call to animate
+	  //every call to animate requests causes another call to animate unless the requestId is set to undefined by #pause
 	  if(requestId){
 	    requestId = requestAnimationFrame(this.animate.bind(this));
 	  }
@@ -795,10 +815,10 @@
 	  key('left', function(){ ship.boost([-1, 0]); });
 	  key('down', function(){ ship.boost([0, 1.5]); });
 	  key('right', function(){ ship.boost([1, 0]); });
-	  key('q', function(){ self.game.addDot(); });
+	  key('q', function(){ self.game.add10Dots(); });
 	  key('space', function(){ ship.brake(); });
 	  key('enter', function(){ self.game.explosion(); });
-	  key('p', function(){ self.pause(); });  
+	  key('p', function(){ self.pause(); });
 	};
 
 	module.exports = GameView;
@@ -813,10 +833,8 @@
 	var Util = __webpack_require__(8);
 
 	var Dot = function(options){
-	  // options.length = Dot.length;
-	  // options.height = Dot.height;
 	  options.radius = Dot.radius;
-	  options.velocity = options.velocity || [Math.random()*10, Math.random()*10];
+	  options.velocity = options.velocity || [Math.random() * 10, Math.random() * 10];
 	  options.color = "red";
 
 	  MovingObject.call(this, options);
@@ -828,11 +846,6 @@
 	  var correctionFactor = 1;
 	  var x_vel = this.velocity[0];
 	  var y_vel = this.velocity[1];
-	  // if(this.speed() < 50){ correctionFactor = 1;}
-	  // 30 seems like a good max speed
-	  // add dots when count hits certain points (# destroyed, time elapsed, score count)
-	  // set a speed cap on dots
-
 
 	  if(shipPos[0] < this.pos[0]){
 	    //If it overshoots ship, it brakes and starts moving in the other direction
@@ -850,8 +863,6 @@
 	    if(y_vel < 0){ y_vel = this.brake(y_vel); }
 	    this.velocity[1] = y_vel + correctionFactor;
 	  }
-
-
 	};
 
 	Dot.prototype.brake = function(velocity){
@@ -859,35 +870,6 @@
 	  return velocity * brakeFactor;
 	};
 
-
-
-	// Dot.prototype.boost = function(movementDelta){
-	//   var x_vel = this.velocity[0];
-	//   var y_vel = this.velocity[1];
-	//
-	//   // Improves handling of ship for fast direction changes
-	//   if ((x_vel < 0 && movementDelta[0] > 0) || (x_vel > 0 && movementDelta[0] < 0)){
-	//     this.resetVelocity([-0.8*x_vel, y_vel]);
-	//   } else if ((y_vel < 0 && movementDelta[1] > 0) || (y_vel > 0 && movementDelta[1] < 0)) {
-	//     this.resetVelocity([x_vel, -0.8*y_vel]);
-	//   }
-	//
-	//   var boostFactor = [1, 1];
-	//   if(this.velocity[0] < 3){
-	//     boostFactor = [1.5, 1];
-	//     console.log("Boosting! " + this.velocity[0]);
-	//   } else if(this.velocity[1] < 3){
-	//     boostFactor = [1, 1.5];
-	//     console.log("Boosting! " + this.velocity[1]);
-	//   }
-	//
-	//   this.velocity = this.velocity.map(function(move, idx){
-	//     return movementDelta[idx] * boostFactor[idx] + move;
-	//   });
-	// };
-
-	Dot.length = 4;
-	Dot.height = 4;
 	Dot.radius = 1.5;
 	Dot.prototype.type = "Dot";
 

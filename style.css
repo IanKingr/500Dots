@@ -1,5 +1,5 @@
 body {
-    background: lightgray;
+  background: lightgray;
 }
 
 h2 {
@@ -10,10 +10,6 @@ h2 {
 li {
   margin: 5px;
 }
-
-/*ul {
-    -webkit-padding-start: 1px;
-}*/
 
 h1 {font-family: 'Oleo Script', cursive;}
 
