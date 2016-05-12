@@ -866,7 +866,7 @@
 	  key('left', function(){ ship.boost([-1, 0]); });
 	  key('down', function(){ ship.boost([0, 1.5]); });
 	  key('right', function(){ ship.boost([1, 0]); });
-	  key('q', function(){ self.game.add10Dots(); });
+	  key('q', function(){ self.game.add10dots(); });
 	  key('space', function(){ ship.brake(); });
 	  key('enter', function(){ self.game.explosion(); });
 	  key('p', function(){ self.pause(); });
