@@ -94,7 +94,7 @@
 
 
 	// module
-	exports.push([module.id, "body {\n    background: lightgray;\n}\n\n.main {\n  display: flex;\n  flex-direction: row;\n}\n\n.info {\n  margin: 10px;\n  font-family: 'Roboto', sans-serif;\n  font-weight: 300;\n}\n\nh2 {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n}\n\nli {\n  margin: 5px;\n}\n\nul {\n    /*-webkit-padding-start: 1px;*/\n}\n\nh1 {\n  font-family: 'Oleo Script', cursive;\n}\n", ""]);
+	exports.push([module.id, "body {\n    background: lightgray;\n}\n\nh2 {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n}\n\nli {\n  margin: 5px;\n}\n\n/*ul {\n    -webkit-padding-start: 1px;\n}*/\n\nh1 {font-family: 'Oleo Script', cursive;}\n\nbutton:focus {outline:0;}\n\n.game {\n  position: relative;\n}\n\n.main {\n  display: flex;\n  flex-direction: row;\n}\n\n.info {\n  margin: 10px;\n  font-family: 'Roboto', sans-serif;\n  font-weight: 300;\n}\n\n.pause-button {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  z-index: 10;\n  position: absolute;\n  min-width: 60px;\n  min-height: 30px;\n  top: 5px;\n  right: 10px;\n  background-color: white;\n  border-radius: 2px;\n  border: 0px;\n}\n\n.active {\n  background-color: darkred;\n  color: floralwhite;\n}\n", ""]);
 
 	// exports
 
@@ -419,9 +419,11 @@
 	  this.objects = [];
 	  this.dots = [];
 	  this.ships = [];
+	  var startingDots = 500;
 
-	  this.addDot();
-	  this.addDot();
+	  for (var i = 0; i < startingDots; i++) {
+	    this.addDot();
+	  }
 	};
 
 	Game.DIM_X = 1000;
@@ -440,7 +442,6 @@
 	    console.log("Dot Added");
 	    this.dots.push(object);
 	  }
-	  // this.objects.push(object);
 	};
 
 	Game.prototype.addDot = function() {
@@ -496,6 +497,13 @@
 
 	Game.prototype.allObjects = function(){
 	  return this.ships.concat(this.dots);
+	};
+
+	Game.prototype.explosion = function(){
+	  var self = this;
+	  this.dots.forEach(function(obj){
+	    obj.explosion(self.ships[0]);
+	  });
 	};
 
 	Game.prototype.checkCollisions = function () {
@@ -627,8 +635,6 @@
 	  this.pos = options.pos;
 	  this.velocity = options.velocity;
 	  this.radius = options.radius;
-	  // this.height = options.height;
-	  // this.length = options.length;
 	  this.color = options.color;
 	  this.game = options.game;
 	};
@@ -644,8 +650,22 @@
 
 	  if(this.game.isOutofBounds(this.pos)) {
 	    this.pos = this.game.wrap(this.pos);
-	    // this.game.remove(this);
 	  }
+	};
+
+	MovingObject.prototype.explosion = function(ship){
+	  // if(Util.distance(this, ship.pos) > this.radius * 4){
+	  //   return;
+	  // }
+	  var xDistance = this.pos[0] - ship.pos[0];
+	  var yDistance = this.pos[1] - ship.pos[1];
+
+	  xDistance = xDistance < 0.5 ? 0.5 : xDistance;
+	  yDistance = yDistance < 0.5 ? 0.5 : yDistance;
+
+	  var explosiveForce = 20;
+	  var explosionVector = [explosiveForce / Math.pow(xDistance, 2), explosiveForce / Math.pow(yDistance, 2)];
+	  this.velocity = Util.sumArrays(explosionVector, this.velocity);
 	};
 
 	MovingObject.prototype.speed = function(){
@@ -658,7 +678,7 @@
 	  context.fillStyle = this.color;
 	  context.beginPath();
 	  context.arc(
-	    this.pos[0], this.pos[1], 15, 15, 2 * Math.PI, true
+	    this.pos[0], this.pos[1], this.radius, 15, 2 * Math.PI, true
 	  );
 	  context.fill();
 	};
@@ -678,8 +698,6 @@
 
 	// ,"Gainsboro","GhostWhite","Gold","GoldenRod","Gray","Grey","Green","GreenYellow","HoneyDew","HotPink","IndianRed","Indigo","Ivory","Khaki","Lavender","LavenderBlush","LawnGreen","LemonChiffon","LightBlue","LightCoral","LightCyan","LightGoldenRodYellow","LightGray","LightGrey","LightGreen","LightPink","LightSalmon","LightSeaGreen","LightSkyBlue","LightSlateGray","LightSlateGrey","LightSteelBlue","LightYellow","Lime","LimeGreen","Linen","Magenta","Maroon","MediumAquaMarine","MediumBlue","MediumOrchid","MediumPurple","MediumSeaGreen","MediumSlateBlue","MediumSpringGreen","MediumTurquoise","MediumVioletRed","MidnightBlue","MintCream","MistyRose","Moccasin","NavajoWhite","Navy","OldLace","Olive","OliveDrab","Orange","OrangeRed","Orchid","PaleGoldenRod","PaleGreen","PaleTurquoise","PaleVioletRed","PapayaWhip","PeachPuff","Peru","Pink","Plum","PowderBlue","Purple","Red","RosyBrown","RoyalBlue","SaddleBrown","Salmon","SandyBrown","SeaGreen","SeaShell","Sienna","Silver","SkyBlue","SlateBlue","SlateGray","SlateGrey","Snow","SpringGreen","SteelBlue","Tan","Teal","Thistle","Tomato","Turquoise","Violet","Wheat","White","WhiteSmoke","Yellow","YellowGreen"];
 
-	window.MovingObject = MovingObject;
-
 	module.exports = MovingObject;
 
 
@@ -698,6 +716,12 @@
 	    Surrogate.prototype = parentClass.prototype;
 	    childClass.prototype = new Surrogate();
 	    childClass.prototype.constructor = childClass;
+	  },
+
+	  sumArrays: function(array1, array2){
+	    return array1.map(function (num, idx) {
+	      return num + array2[idx];
+	    });
 	  }
 	};
 
@@ -718,25 +742,44 @@
 	  this.game = game;
 	  this.context = context;
 	  this.ship = this.game.addShip();
-	  // this.game.addDot();
 	};
 
+	var requestId;
 	GameView.prototype.start = function () {
+	  var self = this;
 	  this.bindKeyHandlers();
 	  this.lastTime = 0;
 	  //start the animation
-	  requestAnimationFrame(this.animate.bind(this));
+	  document.getElementById("pause-button").addEventListener("click", self.pause.bind(self));
+	  requestId = requestAnimationFrame(this.animate.bind(this));
+	};
+
+	GameView.prototype.pause = function(){
+	  var button = document.getElementById("pause-button");
+	  if(requestId){
+	    requestId = undefined;
+	    button.className += " active";
+	    button.innerHTML = "Resume";
+	  } else {
+	    this.unpause = true;
+	    button.className = "pause-button";
+	    button.innerHTML = "Pause";
+	    requestId = requestAnimationFrame(this.animate.bind(this));
+	  }
 	};
 
 	GameView.prototype.animate = function(time){
-	  var timeDelta = time - this.lastTime;
+	  var timeDelta = this.unpause ? 0 : time - this.lastTime;
+	  this.unpause = false;
 
 	  this.game.step(timeDelta);
 	  this.game.draw(this.context);
 	  this.lastTime = time;
 
 	  //every call to animate requests causes another call to animate
-	  requestAnimationFrame(this.animate.bind(this));
+	  if(requestId){
+	    requestId = requestAnimationFrame(this.animate.bind(this));
+	  }
 	};
 
 
@@ -754,6 +797,8 @@
 	  key('right', function(){ ship.boost([1, 0]); });
 	  key('q', function(){ self.game.addDot(); });
 	  key('space', function(){ ship.brake(); });
+	  key('enter', function(){ self.game.explosion(); });
+	  key('p', function(){ self.pause(); });  
 	};
 
 	module.exports = GameView;
@@ -843,7 +888,7 @@
 
 	Dot.length = 4;
 	Dot.height = 4;
-	Dot.radius = 3;
+	Dot.radius = 1.5;
 	Dot.prototype.type = "Dot";
 
 	module.exports = Dot;
