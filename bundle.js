@@ -46,7 +46,7 @@
 
 	__webpack_require__(1);
 	var Game = __webpack_require__(5);
-	var GameView = __webpack_require__(9);
+	var GameView = __webpack_require__(10);
 
 	document.addEventListener("DOMContentLoaded", function(){
 	  var canvasEl = document.getElementsByTagName("canvas")[0];
@@ -412,7 +412,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Ship = __webpack_require__(6);
-	var Dot = __webpack_require__(11);
+	var Dot = __webpack_require__(9);
 
 	var Game = function(){
 	  var self = this;
@@ -755,6 +755,57 @@
 /* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var MovingObject = __webpack_require__(7);
+	var Util = __webpack_require__(8);
+
+	var Dot = function(options){
+	  options.radius = Dot.radius;
+	  options.velocity = options.velocity || [Math.random() * 10, Math.random() * 10];
+	  options.color = "red";
+
+	  MovingObject.call(this, options);
+	};
+
+	Util.inherits(Dot, MovingObject);
+
+	Dot.prototype.correctPath = function(shipPos){
+	  var correctionFactor = 1;
+	  var x_vel = this.velocity[0];
+	  var y_vel = this.velocity[1];
+
+	  if(shipPos[0] < this.pos[0]){
+	    //If it overshoots ship, it brakes and starts moving in the other direction
+	    if(x_vel > 0){ x_vel = this.brake(x_vel); }
+	    this.velocity[0] = x_vel - correctionFactor;
+	  } else if (shipPos[0] > this.pos[0]){
+	    if(x_vel < 0){ x_vel = this.brake(x_vel); }
+	    this.velocity[0] = x_vel + correctionFactor;
+	  }
+
+	  if(shipPos[1] < this.pos[1]){
+	    if(y_vel > 0){ y_vel = this.brake(y_vel); }
+	    this.velocity[1] = y_vel - correctionFactor;
+	  } else if (shipPos[1] > this.pos[1]){
+	    if(y_vel < 0){ y_vel = this.brake(y_vel); }
+	    this.velocity[1] = y_vel + correctionFactor;
+	  }
+	};
+
+	Dot.prototype.brake = function(velocity){
+	  var brakeFactor = 0.97;
+	  return velocity * brakeFactor;
+	};
+
+	Dot.radius = 1.5;
+	Dot.prototype.type = "Dot";
+
+	module.exports = Dot;
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var Game = __webpack_require__(5);
 	var Ship = __webpack_require__(6);
 
@@ -815,65 +866,13 @@
 	  key('left', function(){ ship.boost([-1, 0]); });
 	  key('down', function(){ ship.boost([0, 1.5]); });
 	  key('right', function(){ ship.boost([1, 0]); });
-	  key('q', function(){ self.game.add10Dots(); });
+	  key('q', function(){ self.game.add10dots(); });
 	  key('space', function(){ ship.brake(); });
 	  key('enter', function(){ self.game.explosion(); });
 	  key('p', function(){ self.pause(); });
 	};
 
 	module.exports = GameView;
-
-
-/***/ },
-/* 10 */,
-/* 11 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var MovingObject = __webpack_require__(7);
-	var Util = __webpack_require__(8);
-
-	var Dot = function(options){
-	  options.radius = Dot.radius;
-	  options.velocity = options.velocity || [Math.random() * 10, Math.random() * 10];
-	  options.color = "red";
-
-	  MovingObject.call(this, options);
-	};
-
-	Util.inherits(Dot, MovingObject);
-
-	Dot.prototype.correctPath = function(shipPos){
-	  var correctionFactor = 1;
-	  var x_vel = this.velocity[0];
-	  var y_vel = this.velocity[1];
-
-	  if(shipPos[0] < this.pos[0]){
-	    //If it overshoots ship, it brakes and starts moving in the other direction
-	    if(x_vel > 0){ x_vel = this.brake(x_vel); }
-	    this.velocity[0] = x_vel - correctionFactor;
-	  } else if (shipPos[0] > this.pos[0]){
-	    if(x_vel < 0){ x_vel = this.brake(x_vel); }
-	    this.velocity[0] = x_vel + correctionFactor;
-	  }
-
-	  if(shipPos[1] < this.pos[1]){
-	    if(y_vel > 0){ y_vel = this.brake(y_vel); }
-	    this.velocity[1] = y_vel - correctionFactor;
-	  } else if (shipPos[1] > this.pos[1]){
-	    if(y_vel < 0){ y_vel = this.brake(y_vel); }
-	    this.velocity[1] = y_vel + correctionFactor;
-	  }
-	};
-
-	Dot.prototype.brake = function(velocity){
-	  var brakeFactor = 0.97;
-	  return velocity * brakeFactor;
-	};
-
-	Dot.radius = 1.5;
-	Dot.prototype.type = "Dot";
-
-	module.exports = Dot;
 
 
 /***/ }
