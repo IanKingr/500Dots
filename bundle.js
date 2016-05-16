@@ -419,11 +419,9 @@
 	  this.objects = [];
 	  this.dots = [];
 	  this.ships = [];
-	  var starting10xDots = 50;
+	  var startingDots = 500;
 
-	  for (var i = 0; i < starting10xDots; i++) {
-	    this.add10dots();
-	  }
+	  this.addDots(startingDots);
 	};
 
 	Game.DIM_X = 1000;
@@ -444,8 +442,8 @@
 	  }
 	};
 
-	Game.prototype.add10dots = function() {
-	  for (var i = 0; i < 10; i++) {
+	Game.prototype.addDots = function(number) {
+	  for (var i = 0; i < number; i++) {
 	    var dot = new Dot({
 	      pos: this.randomPosition(),
 	      game: this,
@@ -575,13 +573,12 @@
 	  MovingObject.call(this, options);
 	};
 
-	Ship.length = 10;
-	Ship.height = 20;
 	Ship.radius = 5;
 
 	Util.inherits(Ship, MovingObject);
 
 	Ship.prototype.brake = function(){
+	  console.log("braking");
 	  this.velocity[0] *= 0.4;
 	  this.velocity[1] *= 0.4;
 	};
@@ -809,6 +806,14 @@
 	var Game = __webpack_require__(5);
 	var Ship = __webpack_require__(6);
 
+	// Prevents page scrolling via spacebar, up, down, left, and right keys
+	window.addEventListener("keydown", function(e){
+	  var keys = [32, 37, 38, 39, 40];
+	  if(keys.includes(e.keyCode)){
+	    e.preventDefault();
+	  }
+	});
+
 	var GameView = function(game, context){
 	  this.game = game;
 	  this.context = context;
@@ -866,7 +871,7 @@
 	  key('left', function(){ ship.boost([-1, 0]); });
 	  key('down', function(){ ship.boost([0, 1.5]); });
 	  key('right', function(){ ship.boost([1, 0]); });
-	  key('q', function(){ self.game.add10dots(); });
+	  key('q', function(){ self.game.addDots(10); });
 	  key('space', function(){ ship.brake(); });
 	  key('enter', function(){ self.game.explosion(); });
 	  key('p', function(){ self.pause(); });

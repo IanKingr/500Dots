@@ -1,8 +1,8 @@
 # 500 Dots
 
-[Field Guide live][heroku]
+[500 Dots live][github]
 
-[heroku]: http://field-guide-to-beasts.herokuapp.com
+[github]: iankingr.github.io/500Dots/ 
 
 A graphical experiment utilizing javascript, canvas, and CSS. 500+ Dots zip across the screen, all attracted a lone white dot you control.
 
