@@ -94,7 +94,7 @@
 
 
 	// module
-	exports.push([module.id, "body {\n  background: lightgray;\n}\n\nh2 {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n}\n\nli {\n  margin: 5px;\n}\n\nh1 {font-family: 'Oleo Script', cursive;}\n\nbutton:focus {outline:0;}\n\n.game {\n  position: relative;\n}\n\n.main {\n  display: flex;\n  flex-direction: row;\n}\n\n.info {\n  margin: 10px;\n  font-family: 'Roboto', sans-serif;\n  font-weight: 300;\n}\n\n.pause-button {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  z-index: 10;\n  position: absolute;\n  min-width: 60px;\n  min-height: 30px;\n  top: 5px;\n  right: 10px;\n  background-color: white;\n  border-radius: 2px;\n  border: 0px;\n}\n\n.active {\n  background-color: darkred;\n  color: floralwhite;\n}\n", ""]);
+	exports.push([module.id, "body {\n  background: lightgray;\n}\n\nh2 {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  margin-bottom: 0.1em;\n}\n\nli {\n  margin: 5px;\n}\n\nh1 {font-family: 'Oleo Script', cursive;}\n\n.instructions {\n  display: flex;\n  flex-direction: column;\n}\n\n.instructions div {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n\n\nbutton:focus {outline:0;}\n\n.game {\n  position: relative;\n}\n\n.key {\n  background: gray;\n  display: flex;\n  border: 1px solid darkgrey;\n  color: white;\n  padding: 0.7em;\n  border-radius: 0.5em;\n  justify-content: center;\n  margin-right: 0.7em;\n  margin-left: 0.7em;\n}\n\n.main {\n  display: flex;\n  flex-direction: row;\n}\n\n.info {\n  margin: 10px;\n  font-family: 'Roboto', sans-serif;\n  font-weight: 300;\n}\n\n.pause-button {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  z-index: 10;\n  position: absolute;\n  min-width: 60px;\n  min-height: 30px;\n  top: 5px;\n  right: 10px;\n  background-color: white;\n  border-radius: 2px;\n  border: 0px;\n}\n\n.active {\n  background-color: darkred;\n  color: floralwhite;\n}\n", ""]);
 
 	// exports
 
@@ -437,7 +437,6 @@
 	  if(object.type === "Ship"){
 	    this.ships.push(object);
 	  } else if(object.type === "Dot"){
-	    console.log("Dot Added");
 	    this.dots.push(object);
 	  }
 	};
@@ -539,9 +538,9 @@
 	    object.draw(context);
 	  });
 
-	  context.font = '20px Audiowide';
+	  context.font = '20px Oleo Script';
 	  context.fillStyle = "#FFFFFF";
-	  context.fillText("Number of Dots: " + this.dots.length, 10, 20);
+	  context.fillText("Dots: " + this.dots.length, 10, 20);
 	};
 
 	Game.prototype.isOutofBounds = function(pos){
@@ -561,6 +560,8 @@
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
+	// The ship is the main white dot that the user directs
+
 	var Ship = __webpack_require__(6);
 	var MovingObject = __webpack_require__(7);
 	var Util = __webpack_require__(8);
@@ -569,6 +570,7 @@
 	  options.radius = Ship.radius;
 	  options.velocity = options.velocity || [0, 0];
 	  options.color = "white";
+	  this.explosionVector = 2;
 
 	  MovingObject.call(this, options);
 	};
@@ -577,12 +579,13 @@
 
 	Util.inherits(Ship, MovingObject);
 
+	// Brake method reduces the velocity of the ship to 40%
 	Ship.prototype.brake = function(){
-	  console.log("braking");
 	  this.velocity[0] *= 0.4;
 	  this.velocity[1] *= 0.4;
 	};
 
+	// Moves the ship given user input (movementDelta)
 	Ship.prototype.boost = function(movementDelta){
 	  var x_vel = this.velocity[0];
 	  var y_vel = this.velocity[1];
@@ -595,6 +598,7 @@
 	    this.resetVelocity([x_vel, -brakeFactor*y_vel]);
 	  }
 
+	  // To increase initial speed, arbitrary boost factor is applied when the ship's velocity is below a certain limit
 	  var boostFactor = [1, 1];
 	  if(Math.abs(this.velocity[0]) < 20){
 	    boostFactor = [10, 1];
@@ -609,8 +613,19 @@
 	  });
 	};
 
+	// Assigns the ship a new velocity
 	Ship.prototype.resetVelocity = function(newVelocity){
 	  this.velocity = newVelocity;
+	};
+
+	// Centers the ship in the middle of the canvas and stops it in place
+	Ship.prototype.center = function (){
+	  this.pos = [500, 300];
+	  this.resetVelocity([0,0]);
+	};
+
+	Ship.prototype.toggleExplosion = function (num){
+	  this.explosionVector = num;
 	};
 
 	Ship.prototype.type = "Ship";
@@ -667,6 +682,7 @@
 
 	  var explosiveForce = 10;
 
+	  // Various shapes can be achieved depending on the explosionVector used
 	  var explosionVectors = {
 	    //Small Star + cross on repeats
 	    0: [xDistance * Math.pow(explosiveForce/normalDistance, 1),
@@ -682,7 +698,7 @@
 	  };
 
 	  // var randVector = Math.floor(Math.random() * Object.keys(explosionVectors).length);
-	  var explosionVector = explosionVectors[2];
+	  var explosionVector = explosionVectors[ship.explosionVector];
 	  this.velocity = Util.sumArrays(explosionVector, this.velocity);
 	};
 
@@ -703,7 +719,7 @@
 
 	MovingObject.prototype.isCollidedWith = function(otherObject){
 	  var centerDist = Util.distance(this.pos, otherObject.pos);
-	  return centerDist < 1.4*(this.radius + otherObject.radius); 
+	  return centerDist < 1.4*(this.radius + otherObject.radius);
 	};
 
 	MovingObject.prototype.collideWith = function(otherObject){
@@ -806,14 +822,6 @@
 	var Game = __webpack_require__(5);
 	var Ship = __webpack_require__(6);
 
-	// Prevents page scrolling via spacebar, up, down, left, and right keys
-	window.addEventListener("keydown", function(e){
-	  var keys = [32, 37, 38, 39, 40];
-	  if(keys.includes(e.keyCode)){
-	    e.preventDefault();
-	  }
-	});
-
 	var GameView = function(game, context){
 	  this.game = game;
 	  this.context = context;
@@ -830,6 +838,7 @@
 	  requestId = requestAnimationFrame(this.animate.bind(this));
 	};
 
+	//Pauses the game by stopping the requestAnimationFrame loop and applies CSS colorings to button
 	GameView.prototype.pause = function(){
 	  var button = document.getElementById("pause-button");
 	  if(requestId){
@@ -842,6 +851,7 @@
 	    button.innerHTML = "Pause";
 	    requestId = requestAnimationFrame(this.animate.bind(this));
 	  }
+	  button.blur();
 	};
 
 	GameView.prototype.animate = function(time){
@@ -858,7 +868,15 @@
 	  }
 	};
 
+	// Prevents page scrolling via spacebar, up, down, left, and right keys
+	window.addEventListener("keydown", function(e){
+	  var keys = [32, 37, 38, 39, 40];
+	  if(keys.includes(e.keyCode)){
+	    e.preventDefault();
+	  }
+	});
 
+	// Uses keymaster.js to bind keys to ship/game methods
 	GameView.prototype.bindKeyHandlers = function(){
 	  var ship = this.ship;
 	  var self = this;
@@ -874,7 +892,11 @@
 	  key('q', function(){ self.game.addDots(10); });
 	  key('space', function(){ ship.brake(); });
 	  key('enter', function(){ self.game.explosion(); });
+	  key('c', function(){ ship.center(); });
 	  key('p', function(){ self.pause(); });
+	  key('1', function(){ ship.toggleExplosion(0); });
+	  key('2', function(){ ship.toggleExplosion(1);});
+	  key('3', function(){ ship.toggleExplosion(2); });
 	};
 
 	module.exports = GameView;

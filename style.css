@@ -5,6 +5,7 @@ body {
 h2 {
   font-family: 'Roboto', sans-serif;
   font-weight: 400;
+  margin-bottom: 0.1em;
 }
 
 li {
@@ -13,10 +14,34 @@ li {
 
 h1 {font-family: 'Oleo Script', cursive;}
 
+.instructions {
+  display: flex;
+  flex-direction: column;
+}
+
+.instructions div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+
 button:focus {outline:0;}
 
 .game {
   position: relative;
+}
+
+.key {
+  background: gray;
+  display: flex;
+  border: 1px solid darkgrey;
+  color: white;
+  padding: 0.7em;
+  border-radius: 0.5em;
+  justify-content: center;
+  margin-right: 0.7em;
+  margin-left: 0.7em;
 }
 
 .main {
