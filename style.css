@@ -92,6 +92,16 @@ button:focus {outline:0;}
   color: floralwhite;
 }
 
+.explosion-type {
+  font-family: 'Oleo Script', cursive;
+  font-size: 20px;
+  color: white;
+  position: absolute;
+  z-index: 10;
+  top: 45px;
+  right: 50px;
+}
+
 .active {
   background-color: darkred;
   color: floralwhite;

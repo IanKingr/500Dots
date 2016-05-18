@@ -94,7 +94,7 @@
 
 
 	// module
-	exports.push([module.id, "body {\n  background: lightgray;\n}\n\nh2 {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  margin-bottom: 0.1em;\n}\n\nli {\n  margin: 5px;\n}\n\nh1 {font-family: 'Oleo Script', cursive;}\n\n.instructions {\n  display: flex;\n  flex-direction: column;\n}\n\n.instructions div {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n\n\nbutton:focus {outline:0;}\n\n.game {\n  position: relative;\n}\n\n.key {\n  background: gray;\n  display: flex;\n  border: 1px solid darkgrey;\n  color: white;\n  padding: 0.7em;\n  border-radius: 0.5em;\n  justify-content: center;\n  margin-right: 0.7em;\n  margin-left: 0.7em;\n}\n\n.main {\n  display: flex;\n  flex-direction: row;\n}\n\n.info {\n  margin: 10px;\n  font-family: 'Roboto', sans-serif;\n  font-weight: 300;\n}\n\n.pause-button {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  z-index: 10;\n  position: absolute;\n  min-width: 60px;\n  min-height: 30px;\n  top: 5px;\n  right: 10px;\n  background-color: white;\n  border-radius: 2px;\n  border: 0px;\n}\n\n.explosion {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  background-color: white;\n  border-radius: 50%;\n  z-index: 10;\n  /*border: 2px gray;*/\n  position: absolute;\n  min-width: 30px;\n  min-height: 30px;\n  top: 45px;\n  right: 10px;\n}\n\n.explosion:hover {\n  background-color: darkred;\n  color: floralwhite;\n}\n\n.active {\n  background-color: darkred;\n  color: floralwhite;\n}\n", ""]);
+	exports.push([module.id, "body {\n  background: lightgray;\n}\n\nh2 {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  margin-bottom: 0.1em;\n}\n\nli {\n  margin: 5px;\n}\n\nh1 {font-family: 'Oleo Script', cursive;}\n\n.instructions {\n  display: flex;\n  flex-direction: column;\n}\n\n.instructions div {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n\n\nbutton:focus {outline:0;}\n\n.game {\n  position: relative;\n}\n\n.key {\n  background: gray;\n  display: flex;\n  border: 1px solid darkgrey;\n  color: white;\n  padding: 0.7em;\n  border-radius: 0.5em;\n  justify-content: center;\n  margin-right: 0.7em;\n  margin-left: 0.7em;\n}\n\n.main {\n  display: flex;\n  flex-direction: row;\n}\n\n.info {\n  margin: 10px;\n  font-family: 'Roboto', sans-serif;\n  font-weight: 300;\n}\n\n.pause-button {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  z-index: 10;\n  position: absolute;\n  min-width: 60px;\n  min-height: 30px;\n  top: 5px;\n  right: 10px;\n  background-color: white;\n  border-radius: 2px;\n  border: 0px;\n}\n\n.explosion {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  background-color: white;\n  border-radius: 50%;\n  z-index: 10;\n  /*border: 2px gray;*/\n  position: absolute;\n  min-width: 30px;\n  min-height: 30px;\n  top: 45px;\n  right: 10px;\n}\n\n.explosion:hover {\n  background-color: darkred;\n  color: floralwhite;\n}\n\n.explosion-type {\n  font-family: 'Oleo Script', cursive;\n  font-size: 20px;\n  color: white;\n  position: absolute;\n  z-index: 10;\n  top: 45px;\n  right: 50px;\n}\n\n.active {\n  background-color: darkred;\n  color: floralwhite;\n}\n", ""]);
 
 	// exports
 
@@ -628,7 +628,8 @@
 	  this.resetVelocity([0,0]);
 	};
 
-	Ship.prototype.toggleExplosion = function (num){
+	// Sets the Explosion Type
+	Ship.prototype.setExplosionType = function (num){
 	  this.explosionVector = num;
 	};
 
@@ -839,7 +840,7 @@
 	  this.lastTime = 0;
 	  //start the animation
 	  document.getElementById("pause-button").addEventListener("click", self.pause.bind(self));
-	  document.getElementById("explosion-type").addEventListener("click", self.explosionType.bind(self));
+	  document.getElementById("explosion-type").addEventListener("click", self.toggleExplosionType.bind(self));
 	  requestId = requestAnimationFrame(this.animate.bind(this));
 	};
 
@@ -859,11 +860,11 @@
 	  button.blur();
 	};
 
-	GameView.prototype.explosionType = function(){
+	GameView.prototype.toggleExplosionType = function(){
 	  var button = document.getElementById("explosion-type");
 	  var explosionVector = this.ship.explosionVector;
 	  explosionVector = (explosionVector + 1) % 3;
-	  this.ship.toggleExplosion(explosionVector);
+	  this.ship.setExplosionType(explosionVector);
 	  button.innerHTML = explosionVector;
 	  button.blur();
 	};
@@ -908,9 +909,10 @@
 	  key('enter', function(){ self.game.explosion(); });
 	  key('c', function(){ ship.center(); });
 	  key('p', function(){ self.pause(); });
-	  key('1', function(){ ship.toggleExplosion(0); });
-	  key('2', function(){ ship.toggleExplosion(1);});
-	  key('3', function(){ ship.toggleExplosion(2); });
+	  key('1', function(){ ship.setExplosionType(0); });
+	  key('2', function(){ ship.setExplosionType(1);});
+	  key('3', function(){ ship.setExplosionType(2); });
+	  key('x', function(){ self.toggleExplosionType(); });
 	};
 
 	module.exports = GameView;
