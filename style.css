@@ -71,6 +71,27 @@ button:focus {outline:0;}
   border: 0px;
 }
 
+.explosion {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  font-size: medium;
+  padding: 0 0.5em 0 0.5em;
+  background-color: white;
+  border-radius: 50%;
+  z-index: 10;
+  /*border: 2px gray;*/
+  position: absolute;
+  min-width: 30px;
+  min-height: 30px;
+  top: 45px;
+  right: 10px;
+}
+
+.explosion:hover {
+  background-color: darkred;
+  color: floralwhite;
+}
+
 .active {
   background-color: darkred;
   color: floralwhite;
