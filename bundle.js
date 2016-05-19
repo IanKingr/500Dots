@@ -416,7 +416,6 @@
 
 	var Game = function(){
 	  var self = this;
-	  this.objects = [];
 	  this.dots = [];
 	  this.ships = [];
 	  var startingDots = 500;
@@ -763,9 +762,6 @@
 	  }
 	};
 
-
-
-
 	module.exports = Util;
 
 
@@ -860,6 +856,8 @@
 	  button.blur();
 	};
 
+
+	// Changes among the types of explosions upon user input
 	GameView.prototype.toggleExplosionType = function(){
 	  var button = document.getElementById("explosion-type");
 	  var explosionVector = this.ship.explosionVector;
