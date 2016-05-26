@@ -94,7 +94,7 @@
 
 
 	// module
-	exports.push([module.id, "body {\n  background: lightgray;\n}\n\nh2 {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  margin-bottom: 0.1em;\n}\n\nli {\n  margin: 5px;\n}\n\nh1 {font-family: 'Oleo Script', cursive;}\n\n.instructions {\n  display: flex;\n  flex-direction: column;\n}\n\n.instructions div {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n\n\nbutton:focus {outline:0;}\n\n.game {\n  position: relative;\n}\n\n.key {\n  background: gray;\n  display: flex;\n  border: 1px solid darkgrey;\n  color: white;\n  padding: 0.7em;\n  border-radius: 0.5em;\n  justify-content: center;\n  margin-right: 0.7em;\n  margin-left: 0.7em;\n}\n\n.main {\n  display: flex;\n  flex-direction: row;\n}\n\n.info {\n  margin: 10px;\n  font-family: 'Roboto', sans-serif;\n  font-weight: 300;\n}\n\n.pause-button {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  z-index: 10;\n  position: absolute;\n  min-width: 60px;\n  min-height: 30px;\n  top: 5px;\n  right: 10px;\n  background-color: white;\n  border-radius: 2px;\n  border: 0px;\n}\n\n.explosion {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  background-color: white;\n  border-radius: 50%;\n  z-index: 10;\n  /*border: 2px gray;*/\n  position: absolute;\n  min-width: 30px;\n  min-height: 30px;\n  top: 45px;\n  right: 10px;\n}\n\n.explosion:hover {\n  background-color: darkred;\n  color: floralwhite;\n}\n\n.explosion-type {\n  font-family: 'Oleo Script', cursive;\n  font-size: 20px;\n  color: white;\n  position: absolute;\n  z-index: 10;\n  top: 45px;\n  right: 50px;\n}\n\n.active {\n  background-color: darkred;\n  color: floralwhite;\n}\n", ""]);
+	exports.push([module.id, "body {\n  background: lightgray;\n}\n\nh2 {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  margin-bottom: 0.1em;\n}\n\nli {\n  margin: 5px;\n}\n\nh1 {font-family: 'Oleo Script', cursive;}\n\n.instructions {\n  display: flex;\n  flex-direction: column;\n}\n\n.instructions div {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n\n\nbutton:focus {outline:0;}\n\n.game {\n  position: relative;\n}\n\n.key {\n  background: gray;\n  display: flex;\n  border: 1px solid darkgrey;\n  color: white;\n  padding: 0.7em;\n  border-radius: 0.5em;\n  justify-content: center;\n  margin-right: 0.7em;\n  margin-left: 0.7em;\n}\n\n.main {\n  display: flex;\n  flex-direction: row;\n}\n\n.info {\n  margin: 10px;\n  font-family: 'Roboto', sans-serif;\n  font-weight: 300;\n}\n\n.pause-button {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  z-index: 10;\n  position: absolute;\n  min-width: 60px;\n  min-height: 30px;\n  top: 5px;\n  right: 10px;\n  background-color: white;\n  border-radius: 2px;\n  border: 0px;\n}\n\n.explosion {\n  font-family: 'Roboto', sans-serif;\n  font-weight: 400;\n  font-size: medium;\n  padding: 0 0.5em 0 0.5em;\n  background-color: white;\n  border-radius: 50%;\n  z-index: 10;\n  /*border: 2px gray;*/\n  position: absolute;\n  min-width: 30px;\n  min-height: 30px;\n  top: 45px;\n  right: 10px;\n}\n\n.explosion:hover {\n  background-color: darkred;\n  color: floralwhite;\n}\n\n.explosion-type {\n  font-family: 'Oleo Script', cursive;\n  font-size: 20px;\n  color: white;\n  position: absolute;\n  z-index: 10;\n  top: 45px;\n  right: 50px;\n}\n\n.active {\n  background-color: darkred;\n  color: floralwhite;\n}\n\n.inactive {\n  visibility: hidden;\n}\n\n.tutorial {\n  font-family: 'Oleo Script', cursive;\n  font-size: 20px;\n  color: rebeccapurple;\n  border: 0;\n  background-color: transparent;\n  position: absolute;\n  z-index: 10;\n  top: 516px;\n  left: 0px;\n}\n\n.tutorial:hover {\n  color: darkred;\n}\n", ""]);
 
 	// exports
 
@@ -419,6 +419,7 @@
 	  this.dots = [];
 	  this.ships = [];
 	  this.keys = [];
+	  this.tutorial = true;
 	  var startingDots = 500;
 
 	  this.addDots(startingDots);
@@ -513,21 +514,31 @@
 	Game.prototype.checkCollisions = function () {
 	  var game = this;
 
-	  this.allObjects().forEach(function (obj1) {
-	    game.allObjects().forEach(function (obj2) {
-	      if (obj1 == obj2) {
-	        // don't allow self-collision
-	        return;
-	      }
+	  // Code logic for calculating collisions between any 2 objects
+	  // this.allObjects().forEach(function (obj1) {
+	  //   game.allObjects().forEach(function (obj2) {
+	  //     if (obj1 == obj2) {
+	  //       // don't allow self-collision
+	  //       return;
+	  //     }
+	  //
+	  //     if (obj1.type === "Dot" && obj2.type === "Dot"){
+	  //       return;
+	  //     }
+	  //
+	  //     if (obj1.isCollidedWith(obj2)) {
+	  //       obj1.collideWith(obj2);
+	  //     }
+	  //   });
+	  // });
 
-	      if (obj1.type === "Dot" && obj2.type === "Dot"){
-	        return;
+	  // Logic for calculating collisions between the ship and dots
+	  this.allObjects().forEach(function(object){
+	    if(object.type === "Dot"){
+	      if (object.isCollidedWith(game.ships[0])) {
+	        game.ships[0].collideWith(object);
 	      }
-
-	      if (obj1.isCollidedWith(obj2)) {
-	        obj1.collideWith(obj2);
-	      }
-	    });
+	    }
 	  });
 	};
 
@@ -548,7 +559,10 @@
 	  context.fillStyle = "#FFFFFF";
 	  context.fillText("Dots: " + this.dots.length, 10, 20);
 
-	  context.fillText(this.instructions(), 20, Game.DIM_Y * 0.9);
+	  if(this.tutorial){
+	    context.font = '20px Roboto';
+	    context.fillText(this.instructions(), 20, Game.DIM_Y * 0.9);
+	  }
 	};
 
 	Game.prototype.incrementInstruction = function(e){
@@ -589,7 +603,7 @@
 	      Game.KEYS = [88];
 	      break;
 	    case 7:
-	      text = "You can also add more dots by holding Q (Current max is ~1500)";
+	      text = "Add more dots by holding Q! (Current max is ~4000)";
 	      Game.KEYS = [81];
 	      break;
 	    default:
@@ -780,6 +794,7 @@
 	  return centerDist < 1.4*(this.radius + otherObject.radius);
 	};
 
+	// Changes dot's color upon collision with the ship
 	MovingObject.prototype.collideWith = function(otherObject){
 	  if(this.type==="Ship"){
 	    otherObject.color = MovingObject.colors[ Math.floor(Math.random() * MovingObject.colors.length)];
@@ -891,6 +906,7 @@
 	  //start the animation
 	  document.getElementById("pause-button").addEventListener("click", self.pause.bind(self));
 	  document.getElementById("explosion-type").addEventListener("click", self.toggleExplosionType.bind(self));
+	  document.getElementById("tutorial").addEventListener("click", self.toggleTutorialOff.bind(self));
 	  requestId = requestAnimationFrame(this.animate.bind(this));
 	};
 
@@ -910,6 +926,13 @@
 	  button.blur();
 	};
 
+	//Closes tutorial
+	GameView.prototype.toggleTutorialOff = function(){
+	  var button = document.getElementById("tutorial");
+	  this.game.tutorial = false;
+	  button.className = "inactive";
+	  button.blur();
+	};
 
 	// Changes among the types of explosions upon user input
 	GameView.prototype.toggleExplosionType = function(){
@@ -923,6 +946,7 @@
 
 	GameView.prototype.animate = function(time){
 	  var timeDelta = this.unpause ? 0 : time - this.lastTime;
+	  if (timeDelta > 100) { timeDelta = 100; }
 	  this.unpause = false;
 	  this.game.step(timeDelta);
 	  this.game.draw(this.context);

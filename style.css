@@ -106,3 +106,23 @@ button:focus {outline:0;}
   background-color: darkred;
   color: floralwhite;
 }
+
+.inactive {
+  visibility: hidden;
+}
+
+.tutorial {
+  font-family: 'Oleo Script', cursive;
+  font-size: 20px;
+  color: rebeccapurple;
+  border: 0;
+  background-color: transparent;
+  position: absolute;
+  z-index: 10;
+  top: 516px;
+  left: 0px;
+}
+
+.tutorial:hover {
+  color: darkred;
+}
