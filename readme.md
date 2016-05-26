@@ -2,13 +2,13 @@
 
 [500 Dots live][github]
 
-[github]: http://iankingr.github.io/500Dots/ 
+[github]: http://iankingr.github.io/500Dots/
 
 A graphical experiment utilizing javascript, canvas, and CSS. 500+ Dots zip across the screen, all attracted a lone white dot you control.
 
 ## Features & Implementation
 
-![in motion screenshot](/docs/inMotion.png)
+![in motion screenshot](/docs/orchid.gif)
 
 500 Dots provides a grand rendering of 500+ dots as they fly across the screen, trying to catch up with your cursor. Users can control the cursor and thereby influence the dots, by navigating it with the "WASD" and Spacebar keys. If the dots get too clumped up, blow them away! Hit spacebar to launch an explosion that sends the nearby dots flying away in beautiful patterns. Sometimes the best results occur after all the dots have gathered on the central cursor.
 
